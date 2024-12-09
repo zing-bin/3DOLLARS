@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>通通有獎  最高獎1萬元 </title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            background-image: url('https://i.postimg.cc/50y9KHTb/08466338-f8eb-3a9f-08f7-b54ef0bf1cad.jpg');
+            background-size: cover;
+            background-repeat: no-repeat;
+        }
+        #grid-container {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 10px;
+            margin: 50px auto;
+            width: 90%;
+        }
+        .grid-item {
+            width: 80px;
+            height: 80px;
+            background-image: url('https://i.postimg.cc/NjCLcQP8/Pngtree-birthday-gift-blue-cartoon-illustration-9278334.png');
+            background-size: cover;
+            background-repeat: no-repeat;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 20px;
+            color: #8CFF8C;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+        .grid-item:hover {
+            transform: scale(1.1);
+        }
+        #result {
+            margin-top: 22px;
+            font-size: 24px;
+            color: #ffd700;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.8);
+        }
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%); /* 居中顯示 */
+            background-color: #fefefe;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%; /* 設定寬度為 80% */
+            max-width: 600px; /* 最大寬度 */
+            text-align: center; /* 文字置中 */
+        }   
+                 
+    </style>
+</head>
+<body>
+    <h1 style="margin-top: 10px; color:#FFD306;">金蛇喜迎春 </h1>
+    <div id="grid-container">
+        <!-- 50個格子將在此生成 -->
+    </div>
+    <div id="result"></div>
+    <div id="myModal" class="modal">
+        <div class="modal-content">
+             <img id="prizeImage" src="https://i.postimg.cc/Dwn1rZdP/d0b0dc0454dc4cc1ea6b7f2d6dc527dc.gif" alt="獎品圖像" style="width: 100%;">
+             <p id="prizeAmount" style="font-size: 24px; color: #00DB00; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);"></p>
+        </div>
+    </div>
+         
+    <script>
+        const gridContainer = document.getElementById('grid-container');
+        const resultDiv = document.getElementById('result');
+        const modal = document.getElementById('myModal');
+        const modalContent = document.querySelector('.modal-content');
+        const prizeAmountDiv = document.getElementById('prizeAmount');
+
+        let totalDraws = 0; // 總抽獎次數
+          let remainingPrizes = [
+       { amount: 1200, probability: 0.2 },{ amount: 1600, probability: 0.5 },
+       { amount: 2000, probability: 0.7 },{ amount: 2600, probability: 0.4 },
+       { amount: 3600, probability: 0.1 },{ amount: 6000, probability: 0.02 }, 
+       { amount: 10000, probability: 0.001 },
+       ];
+          
+      
+        // 創建50個格子
+        for (let i = 0; i < 50; i++) {
+            const cell = document.createElement('div');
+            cell.className = 'grid-item';
+            cell.dataset.index = i + 1;
+            cell.innerText = i + 1;
+            cell.onclick = () => revealPrize(cell, i + 1);
+            gridContainer.appendChild(cell);
+        }        
+      
+       function revealPrize(cell, index) {
+    if (cell.innerText !== '?') {
+        const prize = selectPrize();
+        cell.innerText = '?'; // 顯示等待狀態
+        resultDiv.innerText = '抽獎中';
+        resultDiv.className = 'result-text'; // 設置基本樣式
+
+        let displayText = '';
+        const prizeWords = ['中', '獎', '囉'];
+        let currentIndex = 0;
+
+        const interval = setInterval(() => {
+            if (currentIndex < prizeWords.length) {
+                displayText += prizeWords[currentIndex];
+                resultDiv.innerText = displayText; // 更新顯示的文字
+                currentIndex++;
+            } else {
+                clearInterval(interval);
+                // 3秒後顯示獎項
+                setTimeout(() => {
+                    cell.innerText = prize.amount;
+                    prizeAmountDiv.innerText = `恭喜你獲得 ${prize.amount} 元!`;
+                    modal.style.display = 'block';
+
+                    // 根據是否中獎設置樣式
+                    if (prize.amount > 0) {
+                        resultDiv.className = 'result-text result-text-winner';
+                    } else {
+                        resultDiv.className = 'result-text result-text-loser';
+                    }
+                }, 500); // 短暫延遲後顯示獎項
+            }
+        }, 1000); // 每秒顯示一個字
+    } else {
+        resultDiv.innerText = '這個格子已經被抽過了!';
+        resultDiv.className = 'result-text'; // 設置基本樣式
+    }
+}
+
+        // 隨機獲取獎項
+        function selectPrize() {
+            const randomValue = Math.random(); // 生成 0 到 1 的隨機數
+            let cumulativeProbability = 0;
+
+            for (const prize of remainingPrizes) {
+                cumulativeProbability += prize.probability;
+                if (randomValue <= cumulativeProbability) {
+                    totalDraws++;
+                    return { amount: prize.amount };
+                }
+            }
+
+            return { amount:1200}; // 未中獎
+        }
+
+        // 關閉彈出框
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+        
+    </script>
+   </body>
+</html>
